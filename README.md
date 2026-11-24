@@ -1,203 +1,121 @@
-# GHOST · Windows Desktop Agent (with AI Voice)
+# GHOST · AI Windows Desktop Agent (with Voice)
 
-The companion to the GHOST web app — runs on **your** Windows PC and lets Claude
-**actually drive your machine** with real voice in / voice out.
+GHOST is an AI agent that runs on your Windows PC. You tell it what you want in
+plain English (typed or spoken) and an LLM decides which tools to run: open apps,
+find and manage files, take screenshots, run PowerShell, or do scope-gated
+bug-bounty recon. Anything destructive asks for your `[y/N]` first.
 
 ## 🎬 Demo Video
 
 Watch GHOST AI in action: **[Demo video](https://lnkd.in/p/d34t664R)**
 
-> If you can copy-paste, you can run this. Follow the steps in order. Each step
-> is one or two commands.
+---
+
+## What's inside
+
+| Mode | File | What it does |
+|---|---|---|
+| **Text mode** (full agent) | `ghost.py` | Groq `openai/gpt-oss-120b` with a tool-calling loop over every skill below. |
+| **Voice mode** | `voice_ghost.py` | Speak with `v`, it transcribes locally (faster-whisper) and replies out loud (pyttsx3). Uses Groq `llama-3.3-70b-versatile`. Can chat and open Notepad, Edge or Calculator. |
+| **Computer use** (opt-in, beta) | `computer_use.py` | Claude sees the screen and clicks/types. Needs `ANTHROPIC_API_KEY`. **Sandbox VM only.** |
+
+### Skills (text mode)
+
+* ✋ **Desktop** — `get_current_time`, `calculate`, `open_app`, `search_files`,
+  `file_action` (move / copy / delete, confirmed), `screenshot`,
+  `run_powershell` (always confirmed)
+* 🛡 **Bug-bounty pack** — for **authorised testing only**:
+  * Scope gate: `scope_confirm` — every active probe is blocked until the target is confirmed in scope
+  * Recon: `passive_recon` (crt.sh + DNS), `tech_fingerprint`, `security_headers`,
+    `waybackurls`, `js_endpoint_extractor`, `spf_dkim_dmarc`, `ssl_analyser`
+  * Active (scope-gated + confirmed): `misconfig_sweep`, `port_scan` (top 100 TCP),
+    `directory_brute`, `graphql_introspect`, `subdomain_takeover_check`
+  * Utilities: `cve_lookup` (NIST NVD), `hibp_check`, `hash_id`, `decode_toolkit`,
+    `draft_report` (HackerOne-style markdown), `bug_bounty_workflow`
+
+> ⚠ Use the bug-bounty skills only on programs that have authorised you to test
+> (HackerOne, Bugcrowd, Intigriti, YesWeHack, etc.). Unauthorised scanning is a
+> crime in most countries.
 
 ---
 
-## What you'll get
+## Setup (Windows)
 
-* 🎙 **Voice in** — type `v`, speak, it auto-stops on silence (Whisper STT)
-* 🔊 **Voice out** — replies are spoken back (OpenAI TTS, 9 voices)
-* 🧠 **Brain** — Claude Sonnet 4.5 with tool-use loop
-* ✋ **Hands** — open apps / URLs, search/move/copy/delete files (confirmed),
-  take screenshots, run guarded PowerShell, calculate, get the time
-* 🛡 **Bug-bounty pack** — scope-gated recon for **authorised testing only**:
-  `scope_confirm`, `passive_recon` (subdomain enum via crt.sh + DNS),
-  `tech_fingerprint`, `security_headers`, `misconfig_sweep` (~40 known paths),
-  `port_scan` (top 100 TCP), `draft_report` (HackerOne-style markdown).
-* 👁 **Eyes** (opt-in) — `computer_use.py` lets Claude see + click + type in any
-  app. Sandbox VM only.
+**1. Install Python 3.11+** from https://www.python.org/downloads/ and tick
+**"Add python.exe to PATH"** in the installer. Check with `python --version`.
 
-> ⚠ The bug-bounty skills require you to explicitly confirm scope before any
-> active probe runs. Use them only on programs that have authorised you to
-> test (HackerOne, Bugcrowd, Intigriti, YesWeHack, etc.). Unauthorised scanning
-> is a crime in most countries.
-
----
-
-## STEP 1 · Install Python 3.11+
-
-1. Go to **https://www.python.org/downloads/**
-2. Download the latest Windows installer.
-3. Run it. **TICK THE "Add python.exe to PATH" CHECKBOX** at the bottom of the
-   first installer screen. *(This is the single most missed step.)*
-4. Click **Install Now**. Wait ~1 min.
-
-**Verify it worked.** Open a new **PowerShell** window (Win + X → "Windows
-PowerShell") and run:
+**2. Get the code**
 
 ```powershell
-python --version
+git clone https://github.com/v-s-abhishek/Ghost-ai.git
+cd Ghost-ai
 ```
 
-Expected output: `Python 3.11.x` (or higher). If you get *"python is not
-recognised"*, re-run the installer and tick "Add to PATH".
+**3. Install** — double-click **`setup.bat`**. It creates a `.venv`, installs
+`requirements.txt`, copies `.env.example` to `.env` and opens it in Notepad.
 
----
-
-## STEP 2 · Get the agent
-
-1. On the GHOST web app, click the **DOWNLOAD AGENT.ZIP** button (right panel).
-2. Save it somewhere simple, e.g. your **Desktop**.
-3. **Right-click the zip → Extract All…** → choose a folder, e.g.
-   `C:\Users\YOU\Desktop\ghost-windows-agent\`. Click **Extract**.
-
-You should now see a folder containing `setup.bat`, `voice_ghost.py`,
-`ghost.py`, `run_voice.bat`, etc.
-
----
-
-## STEP 3 · One-click install
-
-**Just double-click `setup.bat`** inside the extracted folder.
-
-It will automatically:
-
-1. Create a Python virtualenv inside `.venv\`
-2. Install all dependencies from public PyPI (anthropic, openai, sounddevice, pyautogui, …)
-3. Copy `.env.example` → `.env` and open it in Notepad
-
-> Installation takes ~2 minutes the first time. Leave the PowerShell window
-> open until you see "=== Setup complete ===".
-
-### Manual alternative (if `setup.bat` won't run)
-
-Open PowerShell **in the agent folder** (Shift + right-click in the folder →
-"Open PowerShell window here") and run:
+Manual alternative:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 copy .env.example .env
 notepad .env
 ```
 
-> If PowerShell complains *"running scripts is disabled"*, run this once:
-> `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`,
-> answer **Y**, then re-run the activate line.
+> If PowerShell says *"running scripts is disabled"*, run
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and answer **Y**.
 
----
-
-## STEP 4 · Configure your `.env`
-
-Notepad opens automatically with this file. **You have two options — pick ONE:**
-
-
-
-### Option B · Your own keys
-
-Comment out the Emergent line by putting a `#` in front, then fill in your own:
+**4. Add your API key** — get a free key at https://console.groq.com/keys and put
+it in `.env`:
 
 ```env
-
-OPENAI_API_KEY=sk-YOUR-KEY-FROM-platform.openai.com
-or any
+GROQ_API_KEY=gsk_your_key_here
 ```
 
-
+`.env` is in `.gitignore`, so your key never gets committed.
 
 ---
 
-## STEP 5 · Start GHOST (voice mode)
+## Running it
 
-Inside the agent folder, **double-click `run_voice.bat`**.
-
-You should see the GHOST banner and:
+**Text mode (full agent):** double-click `run_text.bat`, or `python ghost.py`.
 
 ```
-GHOST voice agent online · model: claude-sonnet-4-5 · voice: nova
-Backend: Emergent LLM key
-
-Type your message, or `v` to speak. `exit` to quit.
-
->
+> what time is it?
+> find all PDFs in my Downloads folder
+> take a screenshot
+> calculate 1248 divided by 32
+> confirm scope for example.com, then check its security headers
 ```
 
-### Talk to it
-
-At the `>` prompt:
+**Voice mode:** double-click `run_voice.bat`, or `python voice_ghost.py`.
+The first start downloads the Whisper `medium` model (~1.5 GB).
 
 | You type | What happens |
 |---|---|
-| `v` then Enter | Mic opens. **Speak.** It auto-stops ~1.5s after silence. Whisper transcribes → Claude responds → reply is spoken back. |
-| Any other text | Sent as a text message to Claude (no voice in). Reply is still spoken. |
+| `v` then Enter | Mic opens. Speak. It stops ~1.5 s after you go quiet, transcribes locally and speaks the reply. |
+| Any other text | Sent as a text message. |
 | `exit` | Quit. |
 
-### Try these first
-
-```
-v   →  "what time is it?"
-v   →  "open notepad"
-v   →  "take a screenshot"
-v   →  "find all PDFs in my Downloads folder"
-v   →  "calculate 1248 divided by 32"
-```
-
-Anything destructive (delete file, run PowerShell) **pauses for `[y/N]`** in
-the same window — keep the terminal visible.
-
----
-
-## STEP 6 · Text-only mode (no mic)
-
-Double-click `run_text.bat` instead. Same skills, keyboard only.
-
----
-
-## Change the voice
-
-Edit `.env`:
-
-```env
-```
-
-Options: `nova | alloy | shimmer | echo | fable | onyx | sage | coral | ash`.
-Save and restart `run_voice.bat`.
-
----
-
-## Add your own skills (advanced)
-
-Skills live in `skills/__init__.py`. Each is a Python function + a `TOOL` dict
-that Claude reads to decide when to call it.
-
-1. Write a function: `def my_skill(arg1: str) -> dict: ...`
-2. Append a schema to `ALL_TOOLS`.
-3. Append the function to `DISPATCH`.
-
-Restart and Claude will discover it.
-
----
-
-## Phase 3 · Computer Use (screen control, BETA — sandbox only)
-
-`computer_use.py` lets Claude see your screen and click around. **Do not run
-this on your real Windows session** — only inside a sandboxed VM.
+**Computer use (sandbox VM only):** add `ANTHROPIC_API_KEY` to `.env`, then
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
 python computer_use.py "open notepad and write hello world"
 ```
+
+---
+
+## Add your own skill
+
+Skills live in `skills/__init__.py`.
+
+1. Write a function: `def my_skill(arg1: str) -> dict: ...`
+2. Add its schema (`name`, `description`, `input_schema`) to `ALL_TOOLS`.
+3. Add the function to `DISPATCH`.
+
+Restart `ghost.py` and the model can call it.
 
 ---
 
@@ -205,50 +123,17 @@ python computer_use.py "open notepad and write hello world"
 
 | Symptom | Fix |
 |---|---|
+| `ERROR: set GROQ_API_KEY in .env` | Create `.env` from `.env.example` and paste your Groq key. |
 | `python : not recognised` | Re-run the Python installer with **"Add to PATH"** ticked. |
-| `setup.bat` window opens then closes instantly | Open PowerShell first, `cd` to the folder, run `setup.bat`. The error will stay visible. |
-| `running scripts is disabled` (PowerShell) | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, answer **Y**. |
-| Mic records nothing | Windows Settings → Privacy & Security → **Microphone** → allow apps. Then test with: `python -c "import sounddevice; print(sounddevice.query_devices())"` — you should see your mic. |
-| `credit balance is too low` | Your `ANTHROPIC_API_KEY` is empty. Either top up at console.anthropic.com, or switch back to `EMERGENT_LLM_KEY` in `.env`. |
-| Audio plays through wrong speaker | Windows sound settings → set default output device. |
-| `ModuleNotFoundError: sounddevice` | The venv wasn't activated. Re-run `setup.bat`, or manually `.\.venv\Scripts\Activate.ps1` before `python voice_ghost.py`. |
-| It asks for admin password | Don't give it. Run the whole thing from a non-admin Windows account. |
+| `setup.bat` closes instantly | Open PowerShell, `cd` to the folder and run `.\setup.bat` to see the error. |
+| Mic records nothing | Windows Settings → Privacy & Security → **Microphone** → allow apps. Test with `python -c "import sounddevice; print(sounddevice.query_devices())"`. |
+| `ModuleNotFoundError` | The venv isn't active. Run `.\.venv\Scripts\Activate.ps1` first, or use the `.bat` launchers. |
 
 ---
 
-## Safety (do not skip)
+## Safety
 
-* Run under a **non-admin Windows user account** — not your daily-driver admin
-  login. Contains the blast radius if Claude misreads something.
-* Destructive ops (`delete`, `run_powershell`) **always** prompt for `[y/N]`.
-  Do not remove these prompts.
-* Every action is logged to `ghost.log` next to the script — review it if
-  anything looks off.
-* `computer_use.py` is **off by default**. Only run it inside a sandboxed VM.
-* Never give it access to saved passwords or sensitive accounts without a
-  confirmation step in front.
-
----
-
-## Quick command cheat sheet
-
-```powershell
-# first time only
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-copy .env.example .env
-notepad .env       # edit if you want your own keys
-
-# every time
-.\.venv\Scripts\Activate.ps1
-python voice_ghost.py     # voice + text mode
-# OR
-python ghost.py           # text-only mode
-```
-
-Or just double-click `run_voice.bat` / `run_text.bat` after the first setup.
-
----
-
-Built with ❤ by GHOST. Logs at `ghost.log` next to the script. Enjoy.
+* Run under a **non-admin Windows account**, so a misread command can't do much damage.
+* `file_action` deletes/moves and `run_powershell` **always** prompt `[y/N]`. Don't remove these prompts.
+* Every tool call and result is logged to `ghost.log` next to the script.
+* `computer_use.py` is off by default. Only run it inside a sandboxed VM.

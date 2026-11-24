@@ -1,8 +1,7 @@
-"""GHOST — text-only local Windows agent (no private deps).
+"""GHOST — text-only local Windows agent.
 
-Routes Claude through either:
-  • EMERGENT_LLM_KEY (free, OpenAI-compatible proxy), OR
-  • ANTHROPIC_API_KEY (your own).
+Uses Groq (openai/gpt-oss-120b) through the OpenAI-compatible API, with a
+tool-calling loop over every skill in skills/. Needs GROQ_API_KEY in .env.
 
 Run with `python ghost.py`. Logs to ghost.log.
 """

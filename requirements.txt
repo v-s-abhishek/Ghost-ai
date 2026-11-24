@@ -1,22 +1,19 @@
-google-genai>=1.30.0
-faster-whisper>=1.1.0
-pyttsx3>=2.99
-anthropic>=0.40.0
-python-dotenv>=1.0.0
-sounddevice>=0.4.6
-soundfile>=0.12.1
-numpy>=1.26.0
+# --- Core: text mode (ghost.py) and all skills ---
+openai==1.93.0          # OpenAI-compatible client, pointed at Groq
+python-dotenv==1.1.1
+requests==2.32.4
+dnspython==2.7.0        # passive recon / SPF-DKIM-DMARC checks
+pyautogui==0.9.54       # screenshot skill
+Pillow==11.3.0
+
+# --- Voice mode (voice_ghost.py) ---
 groq==0.31.0
-faster-whisper==1.2.0
-pyttsx3==2.99
+faster-whisper==1.2.0   # local speech-to-text
+ctranslate2==4.6.0
+pyttsx3==2.99           # offline text-to-speech (Windows voices)
 sounddevice==0.5.2
 soundfile==0.13.1
 numpy==2.3.1
-python-dotenv==1.1.1
-requests==2.32.4
-openai==1.93.0
-ctranslate2==4.6.0
-dnspython==2.7.0
-pyautogui==0.9.54
-Pillow==11.3.0
-pywin32==311; sys_platform == "win32"
+
+# --- Optional: computer_use.py (screen control, sandbox VM only) ---
+anthropic>=0.40.0

@@ -1,9 +1,9 @@
-"""GHOST — voice-enabled local Windows agent (no private deps).
+"""GHOST — voice-enabled local Windows agent.
 
-Uses the standard `openai` Python SDK against ANY OpenAI-compatible endpoint:
-  • Emergent proxy (free with EMERGENT_LLM_KEY)   → covers Claude + Whisper + TTS
-  • OR direct OpenAI                              → if user sets OPENAI_API_KEY
-  • For direct Claude, the `anthropic` SDK is used with ANTHROPIC_API_KEY
+Groq (llama-3.3-70b-versatile) for the reply, faster-whisper for local
+speech-to-text, pyttsx3 for offline text-to-speech. Needs GROQ_API_KEY in .env.
+Voice mode can chat and open Notepad, Edge or Calculator; the full skill set
+runs in text mode (ghost.py).
 
 Push-to-talk loop:
   • Type `v` + Enter → speak → auto-stops on ~1.5s silence (or 15s max).
