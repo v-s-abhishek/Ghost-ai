@@ -3,6 +3,10 @@
 The companion to the GHOST web app — runs on **your** Windows PC and lets Claude
 **actually drive your machine** with real voice in / voice out.
 
+## 🎬 Demo Video
+
+Watch GHOST AI in action: **[Demo video](https://lnkd.in/p/d34t664R)**
+
 > If you can copy-paste, you can run this. Follow the steps in order. Each step
 > is one or two commands.
 
